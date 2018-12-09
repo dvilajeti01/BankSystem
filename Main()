@@ -1,3 +1,40 @@
+#include <mysql_connection.h>
+#include <mysql_driver.h>
+#include <cppconn/driver.h>
+#include <cppconn/exception.h>
+#include <cppconn/resultset.h>
+#include <cppconn/statement.h>
+#include <cppconn/prepared_statement.h>
+
+using namespace std;
+
+
+sql::mysql::MySQL_Driver *driver;
+sql::Connection *con;
+sql::Statement *stmt;
+sql::ResultSet *res;
+sql::PreparedStatement *prep_stmt;
+
+//global variables to store file progrma wide data
+int choice = 0;
+int Emp_ID;
+int Trans_ID;
+char decision = 'Y';
+int prim_choice;
+int ID;
+string type;
+int sum;
+string curr_date;
+
+string SSN;
+string FName;
+string LName;
+string Address;
+string Home_Phone;
+string Cell_Phone;
+string DOB;
+
+
 int main()
 {
     

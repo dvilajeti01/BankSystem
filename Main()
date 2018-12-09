@@ -1,0 +1,129 @@
+int main()
+{
+    
+    cout<< "Enter Today's Date: ";
+    cin >> curr_date;
+    cout << endl;
+    
+    do
+    {
+        Main_Interface();
+        cin >> choice;
+        
+        switch(choice) //switch case to deviate between the three main perspectives
+        {
+            case 1: //Employee Perspective
+            
+                decision = 'Y';
+                while (decision == 'Y' || decision == 'y')
+                {
+            
+                cout << "Enter your employee ID: ";
+                cin >> Emp_ID;
+                
+                if (check_employee(Emp_ID))
+                {
+                    Employee_Interface();
+                    
+                    cin >> prim_choice;
+                    
+                    if (prim_choice == 1)
+                        NewCustomer_Interface();
+                    else if (prim_choice == 2)
+                    {
+                        
+                        Approve_Interface();
+                        
+                        cout<< "Press 0 to return to main menu: " << endl;
+                        cin >> choice;
+    
+                    }
+                    else if (prim_choice == 3)
+                       Info_Interface("Employee");
+                    else
+                    {
+                         Main_Interface();
+                         cin >> choice;
+                    }
+                }
+                else
+                {   //Error Message
+                    cout << " **INVALID ID**" << endl;
+                    cout << "Would you like to try again? (Y/N)" << endl;
+                    cin >> decision;
+                    
+                }
+                    
+                
+                }
+                
+                break;
+                
+            case 2: //Existing Customer Perspective
+                decision = 'Y';
+                while (decision == 'Y' || decision == 'y')
+                {
+                    cout << "Enter your Account ID: ";
+                    cin >> ID;
+                    cout << endl;
+                    
+                    if (check_account(ID))
+                    {
+                        Customer_Interface();
+                        cin>>prim_choice;
+                
+                        if (prim_choice == 1)
+                        {
+                            cout << "Enter the info below: " <<endl;
+                            
+                            cout << "Type of Transaction: ";
+                            cin >> type;
+                            cout << endl;
+                            cout<< "The amount: (negative if withdraw positive if depost)";
+                            cin >> sum;
+                            cout << endl;
+                            
+                            make_Transaction(ID,type,sum);
+                        }
+                        else if (prim_choice == 2)
+                        {
+                            Info_Interface("Customer");
+                        }
+                        else if (prim_choice == 3)
+                        {
+                            DeleteAcc(ID);
+                        }
+                        else
+                        {
+                            Main_Interface();
+                            cin >> choice;
+                        }
+                    }
+                    else
+                    {   //Error Message
+                        cout << " **INVALID ID**" << endl;
+                        cout << "Would you like to try again? (Y/N)" << endl;
+                        cin >> decision;
+                    }
+                    }
+                
+                break;
+            case 3: //New Customer Perspective
+                NewCustomer_Interface();
+                
+                break;
+            case 4:
+                choice = 1;
+                break;
+                
+        }
+        
+    } while (choice == 0);
+   
+    
+ 
+    
+    
+    
+    return 0;
+}

@@ -1,0 +1,54 @@
+create database Bank;
+use Bank;
+
+create table Account (
+ID int not null auto_increment primary key,
+SSN char(11),
+Balance int,
+Type char(1),
+B_Name varchar(50),
+foreign key (B_Name) references Branch(B_Name) ,
+foreign key (SSN) references Customer(SSN));
+
+create table Customer 
+(
+SSN char(11) not null primary key,
+FName varchar(20),
+LName varchar(20),
+Address varchar(255),
+Home_Phone char(10),
+Cell_Phone char(10),
+DOB char(10));
+
+create table Branch
+(
+B_Name varchar(50) primary key);
+
+create table Employee 
+(
+Emp_ID int not null primary key,
+Name varchar(50),
+Address varchar(255),
+Cell_Phone char(10),
+Salary int,
+DOB char(10),
+B_Name varchar(50),
+foreign key (B_Name) references Branch(B_Name));
+
+create table Transaction
+(
+Trans_ID int not null  auto_increment primary key,
+T_Type char(1),
+Status varchar(8),
+Date char(10),
+Sum int,
+AC_ID int,
+foreign key (AC_ID) references Account(ID)
+);
+
+
+create table Approves
+(
+Trans_ID int not null primary key,
+Emp_ID int,
+Date char(10));

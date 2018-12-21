@@ -1,162 +1,317 @@
-#include <mysql_connection.h>
-#include <mysql_driver.h>
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
-#include <cppconn/prepared_statement.h>
-
-using namespace std;
-
-
-sql::mysql::MySQL_Driver *driver;
-sql::Connection *con;
-sql::Statement *stmt;
-sql::ResultSet *res;
-sql::PreparedStatement *prep_stmt;
-
-//global variables to store file progrma wide data
-int choice = 0;
-int Emp_ID;
-int Trans_ID;
-char decision = 'Y';
-int prim_choice;
-int ID;
-string type;
-int sum;
-string curr_date;
-
-string SSN;
-string FName;
-string LName;
-string Address;
-string Home_Phone;
-string Cell_Phone;
-string DOB;
+#include "Bank_Functions.h"
 
 
 int main()
 {
+    int choice_main = 0;
+    int choice_emp = 0;
+    int choice_cust = 0;
+    char decision;
+    int ID;
+    int emp_ID;
+    int person;
+    string type;
+    int sum;
     
     cout<< "Enter Today's Date: ";
     cin >> curr_date;
     cout << endl;
     
+    
     do
     {
         Main_Interface();
-        cin >> choice;
+        cin >> choice_main;
         
-        switch(choice) //switch case to deviate between the three main perspectives
+        switch(choice_main)
         {
-            case 1: //Employee Perspective
-            
+            case 1:
+                
                 decision = 'Y';
-                while (decision == 'Y' || decision == 'y')
-                {
-            
-                cout << "Enter your employee ID: ";
-                cin >> Emp_ID;
                 
-                if (check_employee(Emp_ID))
+                while(decision == 'Y' || decision == 'y')
                 {
-                    Employee_Interface();
+                    cout<<"Enter your employee ID: ";
+                    cin >> emp_ID;
+                    cout << endl << "\n";
                     
-                    cin >> prim_choice;
-                    
-                    if (prim_choice == 1)
-                        NewCustomer_Interface();
-                    else if (prim_choice == 2)
+                    if (check_employee(emp_ID)) //if it exists proceed to employee interface
                     {
-                        
-                        Approve_Interface();
-                        
-                        cout<< "Press 0 to return to main menu: " << endl;
-                        cin >> choice;
-    
+                        do
+                        {
+                            
+                            Employee_Interface();
+                            cin >> choice_emp;
+                            
+                            switch(choice_emp) //switch case to deviate between the three main perspectives
+                            {
+                                case 1: //Employee Perspective
+                                    
+                                    
+                                    
+                                    decision = 'Y';
+                                    
+                                    while(decision == 'Y' || decision == 'y')
+                                    {
+                                        ID = NewCustomer_Interface();
+                                        if (ID != -1)
+                                        {
+                                            cout << "**ACCOUNT SUCCESFULLY CREATED**" << endl << "\n Your Account ID is " << ID << endl;
+                                            
+                                            cout << "\nWould you like to create another account? (Y/N)" <<endl;
+                                            cin >> decision;
+                                        }
+                                        
+                                        else
+                                        {
+                                            //Error Message lets you reenter info
+                                            cout << "**SSN ALREADY EXIST**" << endl;
+                                            cout << "\nWould you like to try again? (Y/N)" <<endl;
+                                            cin >> decision;
+                                            
+                                        }
+                                    }
+                                    
+                                    cout << "TO EXIT PRESS 0: ";
+                                    cin >> choice_emp;
+                                    cout << endl;
+                                    
+                                    break;
+                                    
+                                case 2:
+                                    decision = 'Y';
+                                    
+                                    while (decision == 'Y' || decision == 'y')
+                                    {
+                                        Approve_Interface();
+                                        
+                                        cout << "Would you like to approve any of the above transaction? (Y/N)";
+                                        cin >> decision;
+                                        
+                                        if (decision == 'Y' || decision == 'y') //allows you to aprove as many transaction as you would like
+                                        {
+                                            
+                                            cout << "Enter Transaction ID: ";
+                                            cin >> ID;
+                                            
+                                            if (Approve_Transaction(ID, emp_ID))
+                                            {
+                                                cout << "**TRANSACTION APPROVED**" << endl;
+                                                
+                                                cout << "Would you like to approve any other transaction? (Y/N)";
+                                                cin >> decision;
+                                                cout << endl;
+                                            }
+                                            else
+                                            {
+                                                cout << "**TRANSACTION ID INVALID**" << endl;
+                                                cout << "Would you like to try again? (Y/N)" <<endl;
+                                                cin >> decision;
+                                            }
+                                            
+                                            
+                                        }
+                                        else
+                                            break;
+                                    }
+                                    
+                                    cout << "TO EXIT PRESS 0: ";
+                                    cin >> choice_emp;
+                                    cout << endl;
+                                    
+                                    break;
+                                case 3:
+                                    decision = 'Y';
+                                    
+                                    while (decision == 'Y' || decision == 'y')
+                                    {
+                                        cout << "Which would you like to view: " << "\n1. Specific Customer Transaction" <<endl <<"\n2. Entire Tracsction Log" <<endl;
+                                        cin >> person;
+                                        
+                                        if (person == 1)
+                                        {
+                                            Info_Interface("Customer");
+                                            
+                                            cout << "Would you like to go back to the options screen? (Y/N)";
+                                            cin >> decision;
+                                            cout << endl;
+                                        }
+                                        else
+                                        {
+                                            Info_Interface("Employee");
+                                            
+                                            cout << "Would you like to go back to the options screen? (Y/N)";
+                                            cin >> decision;
+                                            cout << endl;
+                                        }
+                                    }
+                                    
+                                    cout << "TO EXIT PRESS 0: ";
+                                    cin >> choice_emp;
+                                    cout << endl;
+                                    
+                                    break;
+                                case 4:
+                                    choice_main = 0;
+                                    break;
+                                    
+                            }
+                            
+                        } while (choice_emp == 0);
                     }
-                    else if (prim_choice == 3)
-                       Info_Interface("Employee");
-                    else
+                    else //if invalid you can re-enter or exit entirely
                     {
-                         Main_Interface();
-                         cin >> choice;
+                        cout << "**INVALID ID**" << endl;
+                        cout << "Would you like to re-enter the ID? (Y/N): ";
+                        cin >> decision;
+                        
                     }
                 }
-                else
-                {   //Error Message
-                    cout << " **INVALID ID**" << endl;
-                    cout << "Would you like to try again? (Y/N)" << endl;
-                    cin >> decision;
-                    
-                }
-                    
                 
-                }
+                cout << "TO EXIT PRESS 0: ";
+                cin >> choice_main;
+                cout << endl;
                 
                 break;
+            case 2:
                 
-            case 2: //Existing Customer Perspective
-                decision = 'Y';
-                while (decision == 'Y' || decision == 'y')
-                {
-                    cout << "Enter your Account ID: ";
-                    cin >> ID;
-                    cout << endl;
-                    
-                    if (check_account(ID))
+                    do
                     {
+                        cout << "Enter Account ID: ";
+                        cin >> ID;
+                        
+                        if (check_account(ID))
+                        {
                         Customer_Interface();
-                        cin>>prim_choice;
-                
-                        if (prim_choice == 1)
+                        cin >> choice_cust;
+                        
+                        switch(choice_cust)
                         {
-                            cout << "Enter the info below: " <<endl;
-                            
-                            cout << "Type of Transaction: ";
-                            cin >> type;
-                            cout << endl;
-                            cout<< "The amount: (negative if withdraw positive if depost)";
-                            cin >> sum;
-                            cout << endl;
-                            
-                            make_Transaction(ID,type,sum);
+                            case 1:
+                                
+                                decision = 'Y';
+                                
+                                while(decision == 'Y' || decision == 'y')
+                                {
+                                
+                                    cout << "What type of transaction would you like to make? (D/W)" <<endl;
+                                    cin >> type;
+                                    
+                                    
+                                    if(type == "D")
+                                    {
+                                        cout << "Enter the ammount you would like to deposit: ";
+                                        cin >> sum;
+                                        cout << endl;
+                                    }
+                                    else
+                                    {
+                                        cout << "Enter the ammount you would like to withdraw: ";
+                                        cin >> sum;
+                                        cout << endl;
+                                    }
+                                
+                                    make_Transaction(ID,type,sum);
+                                    
+                                    cout << "Would you like to make another transaction?" <<endl;
+                                    cin >> decision;
+                                }
+                                
+                                cout << "TO EXIT PRESS 0: ";
+                                cin >> choice_cust;
+                                cout << endl;
+                                
+                                break;
+                            case 2:
+                    
+                                Info_Interface("Customer");
+                                
+                                cout << "TO EXIT PRESS 0: ";
+                                cin >> choice_cust;
+                                cout << endl;
+                                
+                                break;
+                            case 3:
+                                
+                                cout << "Are you sure you want to delete your account? (Y/N) *This decision is permanent*" << endl;
+                                cin >> decision;
+                                
+                                if (decision == 'Y' || decision == 'y')
+                                {
+                                    DeleteAcc(ID);
+                                }
+                                
+                                cout << "TO EXIT PRESS 0: ";
+                                cin >> choice_cust;
+                                cout << endl;
+                                
+                                
+                                break;
+                            case 4:
+                                choice_main = 0;
+                                break;
                         }
-                        else if (prim_choice == 2)
-                        {
-                            Info_Interface("Customer");
-                        }
-                        else if (prim_choice == 3)
-                        {
-                            DeleteAcc(ID);
                         }
                         else
                         {
-                            Main_Interface();
-                            cin >> choice;
+                            cout << "**INVALID ID**" << endl;
+                            cout << "Would you like to re-enter ID? (Y/N)" << endl;
+                            cin >> decision;
+                            
+                            if (decision == 'Y' || decision == 'y')
+                            {
+                                choice_cust = 0;
+                            }
+                            else
+                            {
+                                choice_cust = 5;
+                            }
                         }
-                    }
-                    else
-                    {   //Error Message
-                        cout << " **INVALID ID**" << endl;
-                        cout << "Would you like to try again? (Y/N)" << endl;
-                        cin >> decision;
-                    }
-                    }
+                        
+                    } while(choice_cust == 0);
+                    
+                cout << "TO EXIT PRESS 0: ";
+                cin >> choice_main;
+                cout << endl;
                 
                 break;
-            case 3: //New Customer Perspective
-                NewCustomer_Interface();
+            case 3:
                 
+                decision = 'Y';
+                
+                while (decision == 'Y' || decision == 'y')
+                {
+                ID = NewCustomer_Interface();
+                if (ID != -1 )
+                {
+                    cout << "**ACCOUNT SUCCEFULLY CREATED**" << endl;
+                    cout << "\nYour account ID is: " << ID << endl;
+                    cout << "\nWould you like to create another account? (Y/N)" << endl;
+                    cin >> decision;
+                    
+                }
+                else
+                {
+                    cout << "**The info you entered already exists in our database**" << endl;
+                    cout << "\nWould you like to re-try? (Y/N)" << endl;
+                    cin >> decision;
+                }
+                    
+                }
+                
+                cout << "TO EXIT PRESS 0: ";
+                cin >> choice_main;
+                cout << endl;
                 break;
+            
             case 4:
-                choice = 1;
+                cout <<"**THANK YOU FOR BANKING WITH US**" <<endl;
                 break;
-                
         }
         
-    } while (choice == 0);
-   
+    } while(choice_main == 0);
+    
+    
     
  
     
@@ -164,3 +319,4 @@ int main()
     
     return 0;
 }
+

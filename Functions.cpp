@@ -1,38 +1,35 @@
-void Main_Interface(); //Main Menu
-void Employee_Interface(); //Menu when loged in as Employee
-void Approve_Interface(); //Displays all "pending" transaction
-void Customer_Interface(); //Menu when logedin as existing customer
-void NewCustomer_Interface(); //Menu for new customers
-void Info_Interface(string person); // takes input on what type of info is to be displayed
-void DeleteAcc(int ID); //deletes a row from table account if it matches parameter
-bool check_employee(int ID); //checks if employee exists
-bool check_customer(string SSN); //checks if customer SSN exists
-bool Create_Customer(string SSN,string FName, string LName, string Address,string Home_Phone,string Cel_Phone,string DOB); //creates a new instance in the customer table
-bool Approve_Transaction(int Trans_ID,int Emp_ID); //returns true if tables succefully updated
-bool fetch_transHist(string Person); //outpts transaction history for eother all customers or specific customer
-void make_Transaction(int ID,string type, int sum); //adds new transaction instance to transaction table
-bool check_account(int AC_ID); //checks if an account exists
+#include "Bank_Functions.h"
+
+
+
+sql::mysql::MySQL_Driver *driver;
+sql::Connection *con;
+sql::Statement *stmt;
+sql::ResultSet *res;
+sql::PreparedStatement *prep_stmt;
+
+
 
 void Main_Interface()
 {
-
-        cout << "     WELCOME MANHATTAN COLLEGE BANK" << endl;
-        cout << "------------------------------------------" << endl;
-        cout << "1. Employee Login" << endl;
-        cout << "2. Costumer Login" << endl;
-        cout << "3. Create Account" << endl;
-        cout << "4. Exit" << endl;
+    
+    cout << "     WELCOME MANHATTAN COLLEGE BANK" << endl;
+    cout << "------------------------------------------" << endl;
+    cout << "1. Employee Login" << endl;
+    cout << "2. Costumer Login" << endl;
+    cout << "3. Create Account" << endl;
+    cout << "4. Exit" << endl;
     
     
 }
 
 void Employee_Interface()
 {
-
-            cout << "1. Register New Customer" << endl;
-            cout << "2. Approve Transactions" << endl;
-            cout << "3. Customer Transaction History" << endl;
-            cout << "4. Exit" << endl;
+    
+    cout << "1. Register New Customer" << endl;
+    cout << "2. Approve Transactions" << endl;
+    cout << "3. Customer Transaction History" << endl;
+    cout << "4. Exit" << endl;
     
     
 }
@@ -49,10 +46,17 @@ void Customer_Interface()
 }
 
 
-void NewCustomer_Interface()
+int NewCustomer_Interface()
 {
-   
-
+    string SSN;
+    string FName;
+    string LName;
+    string Address;
+    string Home_Phone;
+    string Cell_Phone;
+    string DOB;
+    int AC_ID;
+    
     //takes as input all the attributes in the customer table
     cout << "To create new account please fill in the required fields below: " << endl;
     cout <<"SSN: ";
@@ -73,21 +77,28 @@ void NewCustomer_Interface()
     
     if (Create_Customer(SSN,FName, LName,Address,Home_Phone,Cell_Phone,DOB)) //calls function to create new customer instance using previously input attributes as parameters
     {
-        //Notifies the user Account was created
-        cout << "ACCOUNT SUCCESFULLY CREATED" << endl;
-        Main_Interface();
+        driver = sql::mysql::get_mysql_driver_instance();
+        con = driver->connect("tcp://127.0.0.1:3306", "root", "root1234");
+        con->setSchema("Bank");
+        stmt = con->createStatement();
+        res = stmt->executeQuery("select count(ID) from Account");
+        
+        
+        //returns auto incremented ID to ensure uniqueness
+        while(res->next())
+        {
+            AC_ID = res->getInt(1);
+        }
+        
+        delete res;
+        delete stmt;
+        delete con;
+        
+        return AC_ID;
     }
     else
-    {   //Error Message lets you reenter info
-        cout << "**SSN ALREADY EXIST**" << endl;
-        cout << "Would you like to try again? (Y/N)" <<endl;
-        cin >> decision;
-        
-        if (decision == 'Y' || decision == 'y')
-            NewCustomer_Interface();
-        else //Exists back to main menu if you do not wish to continue
-            Main_Interface();
-        
+    {
+        return -1;
     }
     
 }
@@ -113,37 +124,13 @@ void Approve_Interface()
     delete res;
     delete con;
     
-    cout << "Would you like to approve any of the above transaction? (Y/N)";
-    cin >> decision;
-    
-    while (decision == 'Y' || decision == 'y') //allows you to aprove as many transaction as you would like
-    {
-    
-            cout << "Enter Transaction ID: ";
-            cin >> Trans_ID;
-            
-            if (Approve_Transaction(Trans_ID, Emp_ID))
-            {
-                cout << "**TRANSACTION APPROVED**" << endl;
-                
-            }
-            else
-            {
-                cout << "**TRANSACTION ID INVALID**" << endl;
-                cout << "Would you like to try again? (Y/N)" <<endl;
-                cin >> decision;
-            }
-            
-    
-        
-    }
     
     
 }
 
 void Info_Interface(string person)
 {
-    cout << "Below is the entire customer transaction log." << endl;
+    cout << "Below is the transaction log: " << endl;
     
     fetch_transHist(person); //displays trascation history
     
@@ -151,15 +138,13 @@ void Info_Interface(string person)
 
 void make_Transaction(int ID,string type, int sum)
 {
-    string ttype = type;
- 
     
     driver = sql::mysql::get_mysql_driver_instance();
     con = driver->connect("tcp://127.0.0.1:3306", "root", "root1234");
     con->setSchema("Bank");
- //creates a new transaction instance
+    //creates a new transaction instance
     prep_stmt = con->prepareStatement("insert into Transaction (T_Type,Status,Date,Sum, Ac_ID) values (?,?,?,?,?)");
-    prep_stmt->setString(1,ttype);
+    prep_stmt->setString(1,type);
     prep_stmt->setString(2,"pending");
     prep_stmt->setString(3,curr_date);
     prep_stmt->setInt(4,sum);
@@ -169,7 +154,7 @@ void make_Transaction(int ID,string type, int sum)
     delete prep_stmt;
     delete con;
     
-    cout << "**TRANSACTION POSTED WAIT FOR APPROVAL**";
+    cout << "**TRANSACTION POSTED WAIT FOR APPROVAL**" << endl;
     
 }
 
@@ -220,7 +205,7 @@ bool check_employee(int ID) //checks to see if employee exists
     
 }
 
- 
+
 
 
 bool Create_Customer(string SSN,string FName, string LName, string Address,string Home_Phone,string Cel_Phone,string DOB)
@@ -228,7 +213,7 @@ bool Create_Customer(string SSN,string FName, string LName, string Address,strin
     string type;
     string branch;
     
-   
+    
     if(!check_customer(SSN)) //if customer SSN is unique append the new instance
     {
         driver = sql::mysql::get_mysql_driver_instance();
@@ -269,29 +254,11 @@ bool Create_Customer(string SSN,string FName, string LName, string Address,strin
         prep_stmt->setString(4,branch);
         prep_stmt->executeQuery();
         
+        delete res;
         delete stmt;
         delete prep_stmt;
         delete con;
-        
-        driver = sql::mysql::get_mysql_driver_instance();
-        con = driver->connect("tcp://127.0.0.1:3306", "root", "root1234");
-        con->setSchema("Bank");
-        stmt = con->createStatement();
-        res = stmt->executeQuery("select count(ID) from Account");
-        
     
-        //returns auto incremented ID to ensure uniqueness
-        while(res->next())
-        {
-            cout << "Your Account ID is " <<res->getInt(1) << endl;
-        }
-        
-        //clears dynamically allocated data
-        delete res;
-        delete stmt;
-        delete con;
-        
-        
         return true;
     }
     else
@@ -335,7 +302,7 @@ bool check_customer(string SSN) //checks to see if SS is unique
     }
 }
 
-bool check_account(int AC_ID) //checks to see if accoujnt already exists
+bool check_account(int AC_ID) //checks to see if account already exists
 {
     driver = sql::mysql::get_mysql_driver_instance();
     con = driver->connect("tcp://127.0.0.1:3306", "root", "root1234");
@@ -416,7 +383,6 @@ bool Approve_Transaction(int Trans_ID, int Emp_ID) //updates tables for approved
     prep_stmt->executeQuery();
     
     delete prep_stmt;
-    delete res;
     delete stmt;
     delete con;
     
@@ -436,21 +402,32 @@ bool fetch_transHist(string Person)
         con = driver->connect("tcp://127.0.0.1:3306", "root", "root1234");
         stmt = con->createStatement();
         stmt->execute("Use Bank");
-        res = stmt->executeQuery("select * from Transaction natural join Account");
+        res = stmt->executeQuery("select * from Transaction natural join Account where Account.ID  = AC_ID ");
         
         while(res->next())
         {
             cout<< res->getInt(1);
+            cout << " ";
             cout<< res->getString(2);
+            cout << " ";
             cout<< res->getString(3);
+            cout << " ";
             cout<<res->getString(4);
+            cout << " ";
             cout<<res->getInt(5);
+            cout << " ";
             cout<<res->getInt(6);
+            cout << " ";
             cout<<res->getInt(7);
+            cout << " ";
             cout<<res->getString(8);
+            cout << " ";
             cout<<res->getInt(9);
+            cout << " ";
             cout<<res->getString(10);
+            cout << " ";
             cout<<res->getString(11);
+            cout << endl;
         }
         delete res;
         delete stmt;
@@ -458,7 +435,7 @@ bool fetch_transHist(string Person)
     }
     else //displays transaction info only for specific customer
     {
-        cout << "Enter your account ID: ";
+        cout << "Enter account ID: ";
         cin >> ID;
         cout << endl;
         
@@ -466,23 +443,34 @@ bool fetch_transHist(string Person)
         con = driver->connect("tcp://127.0.0.1:3306", "root", "root1234");
         stmt = con->createStatement();
         stmt->execute("Use Bank");
-        prep_stmt = con->prepareStatement("select * from Transaction natural join Account where AC_ID = (?)");
+        prep_stmt = con->prepareStatement("select * from Transaction natural join Account where Account.ID  = AC_ID and AC_ID = (?)");
         prep_stmt->setInt(1,ID);
         res = prep_stmt->executeQuery();
         
         while(res->next())
         {
             cout<< res->getInt(1);
+            cout << " ";
             cout<< res->getString(2);
+            cout << " ";
             cout<< res->getString(3);
+            cout << " ";
             cout<<res->getString(4);
+            cout << " ";
             cout<<res->getInt(5);
+            cout << " ";
             cout<<res->getInt(6);
+            cout << " ";
             cout<<res->getInt(7);
+            cout << " ";
             cout<<res->getString(8);
+            cout << " ";
             cout<<res->getInt(9);
+            cout << " ";
             cout<<res->getString(10);
+            cout << " ";
             cout<<res->getString(11);
+            cout << endl;
         }
         delete res;
         delete stmt;
@@ -494,3 +482,14 @@ bool fetch_transHist(string Person)
     return true;
     
 }
+
+
+
+
+
+
+
+
+
+    
+
